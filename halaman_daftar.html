@@ -5,65 +5,144 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Daftar Akun - Abadi Center</title>
   <script src="https://cdn.tailwindcss.com"></script>
+
   <style>
     body {
-      background: linear-gradient(135deg, #a5b4fc, #c7d2fe);
+      margin: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+      background: radial-gradient(circle at 30% 30%, #0ea5e9, #020617 70%);
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .glass {
+      backdrop-filter: blur(14px);
+      background: rgba(255,255,255,0.92);
     }
   </style>
 </head>
-<body class="flex items-center justify-center h-screen font-inter text-gray-700">
-  <div class="bg-white p-8 rounded-2xl shadow-lg w-96 text-center">
-    <h1 class="text-2xl font-bold text-indigo-700 mb-4">Daftar Akun Baru</h1>
 
-    <form id="registerForm" class="space-y-4">
-      <div>
-        <input id="username" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-indigo-400" placeholder="Buat Username" required />
-        <p class="text-xs text-gray-500 mt-1">Hanya huruf, angka, dan garis bawah (_)</p>
-      </div>
-      <div>
-        <input id="password" type="password" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-indigo-400" placeholder="Buat Password (min. 8 karakter)" required />
-      </div>
-      <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition">Daftar</button>
-    </form>
+<body class="flex items-center justify-center h-screen text-gray-700">
 
-    <p class="mt-4 text-sm text-gray-600">
-      Sudah punya akun?
-      <a href="halaman_login.html" class="text-indigo-600 font-semibold hover:underline">Login di sini</a>
-    </p>
-  </div>
+<canvas id="bg"></canvas>
 
-  <script>
-    const form = document.getElementById('registerForm');
-    form.onsubmit = (e) => {
-      e.preventDefault();
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const users = JSON.parse(localStorage.getItem('users_abadi') || '[]');
+<div class="glass p-8 rounded-2xl shadow-2xl w-96 text-center relative z-10">
+  <h1 class="text-2xl font-bold text-indigo-700 mb-4">Daftar Akun Baru</h1>
 
-      // 🟢 Validasi username hanya huruf, angka, dan underscore
-      const usernameRegex = /^[a-zA-Z0-9_]+$/;
-      if (!usernameRegex.test(username)) {
-        alert('Username hanya boleh berisi huruf, angka, dan garis bawah (_), tanpa spasi atau simbol.');
-        return;
-      }
+  <form id="registerForm" class="space-y-4">
+    <div>
+      <input id="username" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-indigo-400" placeholder="Buat Username" required />
+      <p class="text-xs text-gray-500 mt-1">Hanya huruf, angka, dan garis bawah (_)</p>
+    </div>
+    <div>
+      <input id="password" type="password" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-indigo-400" placeholder="Buat Password (min. 8 karakter)" required />
+    </div>
+    <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition">Daftar</button>
+  </form>
 
-      // 🟢 Validasi panjang password minimal 8 karakter
-      if (password.length < 8) {
-        alert('Password harus memiliki minimal 8 karakter.');
-        return;
-      }
+  <p class="mt-4 text-sm text-gray-600">
+    Sudah punya akun?
+    <a href="halaman_login.html" class="text-indigo-600 font-semibold hover:underline">Login di sini</a>
+  </p>
+</div>
 
-      // 🟢 Cek duplikasi username
-      if (users.some(u => u.username === username)) {
-        alert('Username telah digunakan! Silakan pilih username lain.');
-        return;
-      }
+<script>
+/* ===== BACKGROUND PREMIUM SOFT ===== */
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+let w, h;
 
-      users.push({ username, password });
-      localStorage.setItem('users_abadi', JSON.stringify(users));
-      alert('Akun berhasil dibuat! Silakan login.');
-      window.location.href = 'halaman_login.html';
-    };
-  </script>
+function resize(){
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const bubbles = Array.from({length: 35}, () => ({
+  x: Math.random()*w,
+  y: Math.random()*h,
+  r: Math.random()*12+4,
+  speed: Math.random()*0.4+0.2
+}));
+
+const particles = Array.from({length: 50}, () => ({
+  x: Math.random()*w,
+  y: Math.random()*h,
+  s: Math.random()*2
+}));
+
+let mouse = {x: w/2, y: h/2};
+window.addEventListener('mousemove', e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+
+function draw(){
+  ctx.clearRect(0,0,w,h);
+
+  // bubble
+  bubbles.forEach(b=>{
+    b.y -= b.speed;
+    if(b.y < -10) b.y = h+10;
+
+    const dx = mouse.x - b.x;
+    const dy = mouse.y - b.y;
+    b.x += dx*0.0006;
+    b.y += dy*0.0006;
+
+    ctx.beginPath();
+    ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+    ctx.fillStyle = "rgba(255,255,255,0.15)";
+    ctx.fill();
+  });
+
+  // neon particles soft
+  particles.forEach(p=>{
+    ctx.fillStyle = "rgba(56,189,248,0.15)";
+    ctx.fillRect(p.x,p.y,p.s,p.s);
+  });
+
+  requestAnimationFrame(draw);
+}
+draw();
+
+/* ===== FUNCTION REGISTER (TIDAK DIUBAH) ===== */
+const form = document.getElementById('registerForm');
+form.onsubmit = (e) => {
+  e.preventDefault();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const users = JSON.parse(localStorage.getItem('users_abadi') || '[]');
+
+  const usernameRegex = /^[a-zA-Z0-9_]+$/;
+  if (!usernameRegex.test(username)) {
+    alert('Username hanya boleh berisi huruf, angka, dan garis bawah (_), tanpa spasi atau simbol.');
+    return;
+  }
+
+  if (password.length < 8) {
+    alert('Password harus memiliki minimal 8 karakter.');
+    return;
+  }
+
+  if (users.some(u => u.username === username)) {
+    alert('Username telah digunakan! Silakan pilih username lain.');
+    return;
+  }
+
+  users.push({ username, password });
+  localStorage.setItem('users_abadi', JSON.stringify(users));
+  alert('Akun berhasil dibuat! Silakan login.');
+  window.location.href = 'halaman_login.html';
+};
+</script>
+
 </body>
 </html>
